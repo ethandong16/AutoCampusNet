@@ -1,147 +1,170 @@
-# 校园网自动认证助手
+# 校园网自动认证助手（AutoCampusNet）
 
-一个用Go语言开发的校园网自动认证工具，支持掉线自动重连、系统托盘运行、Web配置界面等功能。
+一个基于 Go 的 Windows 校园网自动认证工具，支持系统托盘常驻、掉线自动重连、Web 配置页与开机自启。
 
 ## 功能特性
 
-- 🌐 **自动认证**: 检测网络状态，掉线后自动进行认证
-- 🖥️ **系统托盘**: 在后台运行，通过系统托盘管理
-- ⚙️ **Web配置**: 简洁的HTML配置界面
-- 🔄 **开机自启**: 支持开机自动启动
-- 📱 **Windows通知**: 使用现代化Windows 10/11通知
-- 🚫 **单实例运行**: 防止程序多开，第二次运行打开配置页面
-- 📝 **日志记录**: 详细的运行日志，保存在用户目录
-- 👁️ **隐藏窗口**: 后台运行，不显示控制台窗口
-- 🌍 **IPv4/IPv6支持**: 自动获取本机IP地址并正确格式化
-
-## 安装使用
-
-### 方法一：直接下载
-1. 下载发布的 `campus-net-auth.exe` 文件
-2. 双击运行，首次启动会打开配置页面
-3. 配置校园网账号和密码
-4. 程序会在系统托盘后台运行
-
-### 方法二：源码编译
-1. 确保安装了Go 1.20或更高版本
-2. 克隆或下载源码
-3. 运行 `build.bat` 或手动执行：
-   ```bash
-   go build -ldflags "-H windowsgui" -o campus-net-auth.exe
-   ```
-
-## 配置说明
-
-### 基本配置
-- **账号**: 校园网登录账号
-- **密码**: 校园网登录密码
-- **检查间隔**: 网络状态检查间隔（秒），默认30秒
-
-### 高级配置
-- **检查URL**: 用于检测网络连接状态的URL
-  - 默认：`http://10.10.102.50:801/eportal/portal/online_list`
-- **登录URL**: 认证登录的URL模板
-  - 支持变量替换：`{account}`, `{password}`, `{wlan_user_ip}`, `{wlan_user_ipv6}`
-- **开机自启**: 是否在Windows启动时自动运行
-
-## 系统托盘菜单
-
-右键系统托盘图标可以访问：
-- **配置**: 打开Web配置页面
-- **网络状态**: 检查当前网络连接状态
-- **开机自启**: 切换开机自启动设置
-- **退出**: 退出程序
-
-## 技术实现
-
-### 主要技术栈
-- **Go 1.20+**: 主要开发语言
-- **fyne.io/systray**: 系统托盘功能
-- **gopkg.in/toast.v1**: Windows通知
-- **html/template**: Web配置界面
-- **embed**: 静态文件嵌入
-
-### 核心功能
-1. **网络检测**: 通过HTTP请求检测认证状态
-2. **IP地址获取**: 自动获取IPv4和IPv6地址
-3. **IPv6格式化**: 将IPv6地址转换为URL编码格式
-4. **多实例检测**: 使用Windows Mutex防止重复运行
-5. **开机自启**: 通过Windows注册表设置
-6. **日志系统**: 记录到用户目录的日志文件
-
-## 目录结构
-
-```
-campus-net-auth/
-├── main.go              # 主程序
-├── go.mod               # Go模块文件
-├── build.bat           # Windows构建脚本
-├── README.md           # 说明文档
-├── templates/          # HTML模板
-│   └── config.html     # 配置页面模板
-└── static/            # 静态资源
-    └── style.css      # CSS样式文件
-```
+- 自动检测校园网在线状态，掉线后自动重新认证
+- 系统托盘常驻运行，支持快速操作
+- 本地 Web 配置界面（`http://localhost:8080`）
+- 支持手动触发认证与状态检查
+- 支持开机自启（Windows 注册表）
+- 单实例运行（重复启动会直接打开配置页）
+- 运行日志落盘（便于排错）
+- 支持 IPv4 / IPv6 参数组装（含 IPv6 展开编码）
 
 ## 运行环境
 
-- **操作系统**: Windows 10/11
-- **运行时**: 无需额外运行时，独立可执行文件
-- **网络**: 支持校园网HTTP认证
+- 操作系统：Windows 10 / 11
+- Go 版本：1.20+
 
-## 注意事项
+> 说明：项目包含 Windows 相关 API 调用（互斥锁、注册表、控制台窗口处理），主要面向 Windows 使用。
 
-1. 首次运行需要管理员权限设置开机自启（可选）
-2. 程序会在用户目录下创建 `CampusNetAuth` 文件夹存储配置和日志
-3. 认证失败时会显示Windows通知，但不会重复通知
-4. 可以通过Web界面实时查看运行状态和日志
+## 快速开始
 
-## 故障排除
+### 方式一：使用预编译程序
 
-### 程序无法启动
-- 检查Windows Defender或其他杀毒软件是否误报
-- 确保网络连接正常
-- 查看用户目录下的日志文件
+1. 获取 `campus-net-auth.exe`
+2. 双击运行
+3. 首次运行会自动打开配置页面
+4. 填写账号密码并保存
+5. 程序将转入托盘后台运行
 
-### 认证失败
-- 检查账号密码是否正确
-- 确认校园网认证URL是否有变化
-- 查看程序日志了解具体错误信息
+### 方式二：源码构建
 
-### 通知不显示
-- 确保Windows通知功能已启用
-- 检查程序是否有通知权限
-
-## 开发说明
-
-### 依赖包安装
 ```bash
 go mod download
-```
-
-### 开发运行
-```bash
-go run main.go
-```
-
-### 生产构建
-```bash
 go build -ldflags "-H windowsgui" -o campus-net-auth.exe
 ```
 
-## 许可证
+或直接执行根目录脚本：
 
-MIT License - 详见 LICENSE 文件
+```bat
+build.bat
+```
+
+## 安装与卸载脚本
+
+仓库根目录提供了便捷脚本：
+
+- `install.bat`：创建桌面快捷方式并写入开机启动项
+- `uninstall.bat`：停止进程、删除启动项和本地数据目录
+
+## 使用说明
+
+### 首次配置
+
+在浏览器打开 `http://localhost:8080`（首次运行会自动打开），填写：
+
+- `account`：校园网账号
+- `password`：校园网密码
+- `check_interval`：检查间隔（秒，建议 30，范围 10~300）
+
+高级配置可展开设置：
+
+- `check_url`：在线状态检查接口
+- `login_url`：认证接口模板（支持占位符替换）
+- `auto_start`：是否开机自启
+
+### 托盘菜单
+
+- **⚙️ 配置**：打开 Web 配置页面
+- **🌐 网络状态**：立即检查当前连接状态
+- **🚀 开机自启**：切换开机自启
+- **退出**：关闭程序
+
+## 配置文件
+
+默认路径：`%USERPROFILE%\CampusNetAuth\config.json`
+
+示例：
+
+```json
+{
+  "account": "2021001234",
+  "password": "your_password",
+  "check_url": "http://10.10.102.50:801/eportal/portal/online_list",
+  "login_url": "http://10.10.102.50:801/eportal/portal/login?callback=dr1005&login_method=1&user_account=%2C0%2C{account}%40unicom&user_password={password}&wlan_user_ip={wlan_user_ip}&wlan_user_ipv6={wlan_user_ipv6}&wlan_user_mac=000000000000&wlan_ac_ip=&wlan_ac_name=&jsVersion=4.1.3&terminal_type=1",
+  "auto_start": true,
+  "check_interval": 30
+}
+```
+
+`login_url` 支持以下占位符：
+
+- `{account}`：账号（URL 编码）
+- `{password}`：密码（URL 编码）
+- `{wlan_user_ip}`：本机 IPv4
+- `{wlan_user_ipv6}`：本机 IPv6（展开并编码）
+
+## 本地数据目录
+
+程序运行后会创建：
+
+```text
+%USERPROFILE%\CampusNetAuth\
+├── config.json  # 配置文件
+└── app.log      # 运行日志
+```
+
+## Web API（本地）
+
+- `GET /api/config`：读取配置
+- `POST /api/config`：保存配置
+- `GET /api/status`：查询在线状态
+- `GET|POST /api/auth`：手动认证
+- `POST /api/exit`：退出程序
+
+## 项目结构
+
+```text
+AutoCampusNet/
+├── main.go
+├── go.mod
+├── go.sum
+├── README.md
+├── INSTALL.md
+├── CONFIG.md
+├── USAGE_EXAMPLES.md
+├── PROJECT_STRUCTURE.md
+├── build.bat
+├── install.bat
+├── uninstall.bat
+├── templates/
+│   └── config.html
+└── static/
+    └── style.css
+```
+
+## 常见问题
+
+### 1) 程序启动后看不到窗口
+
+程序默认托盘常驻，并会隐藏控制台窗口；请在系统托盘区域查找图标。
+
+### 2) 认证失败
+
+- 检查账号密码是否正确
+- 检查 `check_url` / `login_url` 是否仍与学校认证接口一致
+- 查看 `%USERPROFILE%\CampusNetAuth\app.log` 获取详细错误信息
+
+### 3) 开机自启未生效
+
+- 检查是否成功写入注册表启动项
+- 重新通过托盘菜单切换一次“开机自启”
+
+## 安全说明
+
+- 配置文件中会保存账号密码，请妥善保护本机账户安全
+- 默认认证流程基于校园网现有接口，是否加密取决于学校网络环境
+
+## 相关文档
+
+- [安装部署指南](./INSTALL.md)
+- [配置说明](./CONFIG.md)
+- [使用示例](./USAGE_EXAMPLES.md)
+- [项目结构](./PROJECT_STRUCTURE.md)
 
 ## 贡献
 
-欢迎提交Issue和Pull Request！
-
-## 更新日志
-
-### v1.0.0
-- 初始版本发布
-- 支持基本的校园网认证功能
-- Web配置界面
-- 系统托盘集成
-- Windows通知支持
+欢迎通过 Issue / Pull Request 提交建议与改进。
